@@ -13,10 +13,10 @@ describe("Given that I am a user on login page", () => {
       document.body.innerHTML = LoginUI();
 
       const inputEmailUser = screen.getByTestId("employee-email-input");
-      expect(inputEmailUser.value).toBe("");
+      expect(inputEmailUser?.value).toBe("");
 
       const inputPasswordUser = screen.getByTestId("employee-password-input");
-      expect(inputPasswordUser.value).toBe("");
+      expect(inputPasswordUser?.value).toBe("");
 
       const form = screen.getByTestId("form-employee");
       const handleSubmit = jest.fn((e) => e.preventDefault());
