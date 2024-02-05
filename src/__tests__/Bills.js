@@ -70,7 +70,6 @@ describe("Given I am connected as an employee", () => {
         document, onNavigate, store, localStorage: window.localStorage
       }) 
 
-
       const handleClickIconEye = jest.fn(bill.handleClickIconEye)
       const eye = screen.getAllByTestId('icon-eye')
       eye[0].addEventListener('click', handleClickIconEye)
