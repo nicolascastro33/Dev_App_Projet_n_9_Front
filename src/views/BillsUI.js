@@ -47,6 +47,7 @@ export default ({ data: bills, loading, error }) => {
   } else if (error) {
     return ErrorPage(error)
   }
+
   const filteredBills = bills?.sort((a, b) => new Date(b.date) - new Date(a.date))
   return (`
     <div class='layout'>
