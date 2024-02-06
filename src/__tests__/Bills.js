@@ -2,11 +2,11 @@
  * @jest-environment jsdom
  */
 
-import {screen, waitFor} from "@testing-library/dom"
+import {fireEvent, screen, waitFor} from "@testing-library/dom"
 import userEvent from '@testing-library/user-event'
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
 import Bills from "../containers/Bills.js";
 import { localStorageMock } from "../__mocks__/localStorage.js"
 import mockStore from "../__mocks__/store"
@@ -49,7 +49,27 @@ describe("Given I am connected as an employee", () => {
   })
   describe("When I click on the NewBill button", () => {
     test("Then I should be redirected into a new path", () => {
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee'
+      }))
+      document.body.innerHTML = BillsUI({ data: bills })
 
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname })
+      }
+      const store = null
+      const bill = new Bills({
+        document, onNavigate, store, localStorage: window.localStorage
+      })
+      const handleClickNewBill = jest.fn(bill.handleClickNewBill)
+      const buttonNewBill = screen.getByTestId('btn-new-bill')
+      buttonNewBill.addEventListener('click', handleClickNewBill)
+      fireEvent.click(buttonNewBill)
+      expect(handleClickNewBill).toHaveBeenCalled()
+
+      const formNewBill = screen.queryByTestId('form-new-bill')
+      expect(formNewBill).toBeTruthy()
     })
     test("Then I should be able to fulfill the form", async () => {
     })
@@ -78,7 +98,6 @@ describe("Given I am connected as an employee", () => {
 
       const modale = screen.getByTestId('modaleFile')
       expect(modale).toBeTruthy()
-
     })
   })
 })
