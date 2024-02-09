@@ -11,6 +11,7 @@ import { localStorageMock } from "../__mocks__/localStorage.js"
 import mockStore from "../__mocks__/store"
 import router from "../app/Router.js";
 import store from "../__mocks__/store";
+import $ from 'jquery'
 
 jest.mock("../app/store", () => mockStore)
 
@@ -99,7 +100,7 @@ describe("Given I am connected as an employee", () => {
         email:'a@a',
         type: 'Employee'
       }))
-      
+
       const onNavigate = null
       const store = {
         bills(){
@@ -181,24 +182,25 @@ describe("Given I am connected as an employee", () => {
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee'
       }))
-      document.body.innerHTML = BillsUI({ data: bills })
+      $.fn.modal = jest.fn();
+      const showModalSpy = jest.spyOn($.fn, 'modal');
+      document.body.innerHTML = BillsUI({ data: [bills[0]] })
 
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname })
       }
-      const store = null
       const bill = new Bills({
         document, onNavigate, store, localStorage: window.localStorage
       }) 
 
       const handleClickIconEye = jest.fn(bill.handleClickIconEye)
-      const eye = screen.getAllByTestId('icon-eye')
-      eye[0].addEventListener('click', handleClickIconEye)
-      userEvent.click(eye[0])
-      expect(handleClickIconEye).toHaveBeenCalled()
+      const eye = screen.getByTestId('icon-eye')
+      eye.addEventListener('click', handleClickIconEye)
+      userEvent.click(eye)
 
-      const modale = screen.getByTestId('modaleFile')
-      expect(modale).toBeTruthy()
-    })
+      expect(handleClickIconEye).toHaveBeenCalled()    
+      expect(screen.getByTestId('imgModale')).not.toBeUndefined()
+      expect(showModalSpy).toHaveBeenCalledWith('show');
+      })
   })
 })
