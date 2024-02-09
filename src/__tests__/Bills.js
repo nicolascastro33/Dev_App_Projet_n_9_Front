@@ -30,7 +30,6 @@ describe("Given I am connected as an employee", () => {
       await waitFor(() => screen.getByTestId('icon-window'))
       const windowIcon = screen.getByTestId('icon-window')
       expect(windowIcon.className).toBe('active-icon')
-
     })
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills })
@@ -100,21 +99,37 @@ describe("Given I am connected as an employee", () => {
         email:'a@a',
         type: 'Employee'
       }))
+      
       const onNavigate = null
+      const store = {
+        bills(){
+          return mockedBills
+        }
+      }
+      const mockedBills = {
+        list(){
+          return Promise.resolve([{
+            "id": null,
+            'name': 'invalidData',
+            "date": "2001-01-01",
+            "amount": 400,
+          }])
+        }
+      }
       const bill = new Bills({
         document, onNavigate, store, localStorage: window.localStorage
       })
-      let goodFormat
+      const logSpy = jest.spyOn(console, 'log');
 
-      bill.getBills().catch(e => {  
+      bill.getBills().then(data => {  
         const uriRegEx = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/
-        let goodFormat
-        data().forEach(element => {
-          goodFormat = uriRegEx.test(element.date)
+        let initialFormat
+        data.forEach(element => {
+          initialFormat = uriRegEx.test(element.date)
+          expect(initialFormat).toBe(true)
+          expect(logSpy).toHaveBeenCalled()
         }); 
-        return goodFormat
       });
-      expect(goodFormat).toBe('hello')
     })
   })
 })
@@ -143,6 +158,18 @@ describe("Given I am connected as an employee", () => {
 
       const formNewBill = screen.queryByTestId('form-new-bill')
       expect(formNewBill).toBeTruthy()
+
+      // Possibilité en externalisant le détail de l'implémentation des tests dans une fixture
+      
+      // givenIAmConnectedAs({
+      //   type: 'Employee'
+      // });
+
+      // givenIAmOnBillsPage(bills);
+
+      // whenIClickOnNewBillButton();
+
+      // thenIShouldSee('form-new-bill');
     })
   })
 })
