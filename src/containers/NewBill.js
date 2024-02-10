@@ -41,7 +41,6 @@ export default class NewBill {
         }
       })
       .then(({fileUrl, key}) => {
-        console.log(fileUrl)
         this.billId = key
         this.fileUrl = fileUrl
         this.fileName = fileName
@@ -64,6 +63,7 @@ export default class NewBill {
       fileName: this.fileName,
       status: 'pending'
     }
+    console.log(bill)
     this.updateBill(bill)
     this.onNavigate(ROUTES_PATH['Bills'])
   }
