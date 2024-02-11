@@ -117,6 +117,61 @@ describe("Given that I am a user on login page", () => {
   });
 });
 
+  describe("When I do fill fields in correct format and I click on employee button Login In, but I don't have an account", () => {
+    test("Then it should create an account", () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        email: "johndoe@email.com",
+        password: "azerty",
+      };
+
+      const inputEmailUser = screen.getByTestId("employee-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+
+      
+      const inputPasswordUser = screen.getByTestId("employee-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+
+      const form = screen.getByTestId("form-employee");
+
+           Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: jest.fn(() => null),
+          setItem: jest.fn(() => null),
+        },
+        writable: true,
+      });
+
+      // we have to mock navigation to test it
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+      const store = {
+              login: jest.fn().mockRejectedValue({}),
+              users: () => ({
+                create: jest.fn()
+              })
+            };  
+
+      const login = new Login({
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+      const createUser = jest.fn(login.createUser);
+      // login.login = jest.fn().mockRejectedValue({});
+      form.addEventListener("submit", jest.fn(login.handleSubmitEmployee));
+      fireEvent.submit(form);
+      expect(createUser).toHaveBeenCalled();
+    });
+  })
+
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on admin button Login In", () => {
     test("Then It should renders Login page", () => {
