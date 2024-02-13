@@ -118,7 +118,7 @@ describe("Given that I am a user on login page", () => {
 });
 
   describe("When I do fill fields in correct format and I click on employee button Login In, but I don't have an account", () => {
-    test("Then it should create an account", () => {
+    test("Then it should create an account", async () => {
       document.body.innerHTML = LoginUI();
       const inputData = {
         email: "johndoe@email.com",
@@ -127,16 +127,18 @@ describe("Given that I am a user on login page", () => {
 
       const inputEmailUser = screen.getByTestId("employee-email-input");
       fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
 
-      
       const inputPasswordUser = screen.getByTestId("employee-password-input");
       fireEvent.change(inputPasswordUser, {
         target: { value: inputData.password },
       });
+      expect(inputPasswordUser.value).toBe(inputData.password);
 
       const form = screen.getByTestId("form-employee");
 
-           Object.defineProperty(window, "localStorage", {
+      // localStorage should be populated with form data
+      Object.defineProperty(window, "localStorage", {
         value: {
           getItem: jest.fn(() => null),
           setItem: jest.fn(() => null),
@@ -150,12 +152,8 @@ describe("Given that I am a user on login page", () => {
       };
 
       let PREVIOUS_LOCATION = "";
-      const store = {
-              login: jest.fn().mockRejectedValue({}),
-              users: () => ({
-                create: jest.fn()
-              })
-            };  
+
+      const store = jest.fn();
 
       const login = new Login({
         document,
@@ -164,13 +162,30 @@ describe("Given that I am a user on login page", () => {
         PREVIOUS_LOCATION,
         store,
       });
-      const createUser = jest.fn(login.createUser);
-      // login.login = jest.fn().mockRejectedValue({});
-      form.addEventListener("submit", jest.fn(login.handleSubmitEmployee));
-      fireEvent.submit(form);
-      expect(createUser).toHaveBeenCalled();
-    });
+
+      const handleSubmit = jest.fn(login.handleSubmitEmployee);
+      login.login = jest.fn().mockRejectedValue({});
+      login.createUser = jest.fn((user) => console.log(`User with ${user.email} is created`))
+      const spyOn = jest.spyOn(console, 'log')
+      form.addEventListener("submit", handleSubmit);
+      await fireEvent.submit(form);
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "user",
+        JSON.stringify({
+          type: "Employee",
+          email: inputData.email,
+          password: inputData.password,
+          status: "connected",
+        })
+      )
+      expect(spyOn).toHaveBeenCalledWith(`User with ${inputData.email} is created`)
+            // Voir pour vérifier si le navigate est appelé et vérifier ou son ce trouve
+    })
   })
+
+
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on admin button Login In", () => {
@@ -282,4 +297,71 @@ describe("Given that I am a user on login page", () => {
       expect(screen.queryByText("Validations")).toBeTruthy();
     });
   });
+  describe("When I do fill fields in correct format and I click on Admin button Login In, but I don't have an account", () => {
+    test("Then it should create an account", async () => {
+      document.body.innerHTML = LoginUI();
+      const inputData = {
+        email: "johndoe@email.com",
+        password: "azerty",
+      };
+
+      const inputEmailUser = screen.getByTestId("admin-email-input");
+      fireEvent.change(inputEmailUser, { target: { value: inputData.email } });
+      expect(inputEmailUser.value).toBe(inputData.email);
+
+      const inputPasswordUser = screen.getByTestId("admin-password-input");
+      fireEvent.change(inputPasswordUser, {
+        target: { value: inputData.password },
+      });
+      expect(inputPasswordUser.value).toBe(inputData.password);
+
+      const form = screen.getByTestId("form-admin");
+
+      // localStorage should be populated with form data
+      Object.defineProperty(window, "localStorage", {
+        value: {
+          getItem: jest.fn(() => null),
+          setItem: jest.fn(() => null),
+        },
+        writable: true,
+      });
+
+      // we have to mock navigation to test it
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      let PREVIOUS_LOCATION = "";
+
+      const store = jest.fn();
+
+      const login = new Login({
+        document,
+        localStorage: window.localStorage,
+        onNavigate,
+        PREVIOUS_LOCATION,
+        store,
+      });
+
+      const handleSubmit = jest.fn(login.handleSubmitAdmin);
+      login.login = jest.fn().mockRejectedValue({});
+      login.createUser = jest.fn((user) => console.log(`User with ${user.email} is created`))
+      const spyOn = jest.spyOn(console, 'log')
+      form.addEventListener("submit", handleSubmit);
+      await fireEvent.submit(form);
+      expect(handleSubmit).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalled();
+      expect(window.localStorage.setItem).toHaveBeenCalledWith(
+        "user",
+        JSON.stringify({
+          type: "Admin",
+          email: inputData.email,
+          password: inputData.password,
+          status: "connected",
+        })
+      )
+      expect(spyOn).toHaveBeenCalledWith(`User with ${inputData.email} is created`)
+      // Voir pour vérifier si le navigate est appelé et vérifier ou son ce trouve
+    })
+  })
 });
