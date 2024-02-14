@@ -6,6 +6,7 @@ import LoginUI from "../views/LoginUI";
 import Login from "../containers/Login.js";
 import { ROUTES } from "../constants/routes";
 import { fireEvent, screen } from "@testing-library/dom";
+import { localStorageMock } from "../__mocks__/localStorage.js";
 
 describe("Given that I am a user on login page", () => {
   describe("When I do not fill fields and I click on employee button Login In", () => {
@@ -146,13 +147,11 @@ describe("Given that I am a user on login page", () => {
         writable: true,
       });
 
-      // we have to mock navigation to test it
       const onNavigate = (pathname) => {
         document.body.innerHTML = ROUTES({ pathname });
       };
 
       let PREVIOUS_LOCATION = "";
-
       const store = jest.fn();
 
       const login = new Login({
@@ -165,8 +164,7 @@ describe("Given that I am a user on login page", () => {
 
       const handleSubmit = jest.fn(login.handleSubmitEmployee);
       login.login = jest.fn().mockRejectedValue({});
-      login.createUser = jest.fn((user) => console.log(`User with ${user.email} is created`))
-      const spyOn = jest.spyOn(console, 'log')
+      login.createUser = jest.fn().mockResolvedValue({})
       form.addEventListener("submit", handleSubmit);
       await fireEvent.submit(form);
       expect(handleSubmit).toHaveBeenCalled();
@@ -180,9 +178,11 @@ describe("Given that I am a user on login page", () => {
           status: "connected",
         })
       )
-      expect(spyOn).toHaveBeenCalledWith(`User with ${inputData.email} is created`)
-            // Voir pour vérifier si le navigate est appelé et vérifier ou son ce trouve
+      expect(login.createUser).toHaveBeenCalled()
     })
+    test("It should renders Bills page", () => {
+      expect(screen.getAllByText("Mes notes de frais")).toBeTruthy();
+    });
   })
 
 
@@ -345,8 +345,7 @@ describe("Given that I am a user on login page", () => {
 
       const handleSubmit = jest.fn(login.handleSubmitAdmin);
       login.login = jest.fn().mockRejectedValue({});
-      login.createUser = jest.fn((user) => console.log(`User with ${user.email} is created`))
-      const spyOn = jest.spyOn(console, 'log')
+      login.createUser = jest.fn().mockResolvedValue({})
       form.addEventListener("submit", handleSubmit);
       await fireEvent.submit(form);
       expect(handleSubmit).toHaveBeenCalled();
@@ -360,8 +359,132 @@ describe("Given that I am a user on login page", () => {
           status: "connected",
         })
       )
-      expect(spyOn).toHaveBeenCalledWith(`User with ${inputData.email} is created`)
-      // Voir pour vérifier si le navigate est appelé et vérifier ou son ce trouve
+      expect (login.createUser).toHaveBeenCalled()
     })
+    test("It should renders HR dashboard page", () => {
+      expect(screen.queryByText("Validations")).toBeTruthy();
+    });
   })
 });
+
+
+describe("test on the createUser function", () => {
+  test("Then i'm using the create User function with valid data", async () => {
+    jest.spyOn(console, "log")
+    document.body.innerHTML = LoginUI();
+    const onNavigate = null
+    const PREVIOUS_LOCATION = ""
+    const store = {
+      users: jest.fn(() => ({
+        create: jest.fn().mockResolvedValue({}),
+      })),
+    }; 
+    const login = new Login({
+      document,
+      localStorage: window.localStorage,
+      onNavigate,
+      PREVIOUS_LOCATION,
+      store,
+    });
+
+    const user = {
+      type: "Employee",
+      email: 'a@a',
+      password: 'azerty',
+      status: "connected"
+    }
+    login.login = jest.fn()
+    const createUser = jest.fn(login.createUser)
+    await createUser(user)
+    expect(createUser).toHaveBeenCalled()
+  })
+  test('Then it should call a message on the console', () => {
+    expect(console.log).toHaveBeenCalledWith('User with a@a is created')
+  })
+  describe('When the store is not initialized', () => {
+    test('it should render null', async () => {
+    document.body.innerHTML = LoginUI();
+
+    const onNavigate = null
+    const PREVIOUS_LOCATION = ""
+    const store = null
+    const login = new Login({
+      document,
+      localStorage: window.localStorage,
+      onNavigate,
+      PREVIOUS_LOCATION,
+      store,
+    });
+
+    const user = {
+      type: "Employee",
+      email: 'a@a',
+      password: 'failed',
+      status: "connected"
+    }
+    const createUser = jest.fn(login.createUser)
+    const resultNull = createUser(user)
+    expect(resultNull).toBe(null)
+    })
+  })
+})
+
+// describe("test on the login function", () => {
+//   test("Then i'm using the create User function with valid data", async () => {
+//     Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+
+//     document.body.innerHTML = LoginUI();
+//     const onNavigate = null
+//     const PREVIOUS_LOCATION = ""
+//     const store = {
+//       login: jest.fn().mockResolvedValue({}),
+//     }; 
+//     const login = new Login({
+//       document,
+//       localStorage: window.localStorage,
+//       onNavigate,
+//       PREVIOUS_LOCATION,
+//       store,
+//     });
+
+//     const user = {
+//       email: 'a@a',
+//       password: 'azerty',
+//     }
+//     const loginUser = jest.fn(login.login)
+//     await loginUser(user)
+//     expect(loginUser).toHaveBeenCalled()
+//   })
+
+//   test('Then a jwt should be create on the localStorage', () => {
+//     const jwt = JSON.parse(localStorage.getItem('jwt'))
+//     expect(jwt.jwt).toBe()
+
+//   })
+//   describe('When the store is not initialized', () => {
+//     test('it should render null', async () => {
+//     document.body.innerHTML = LoginUI();
+
+//     const onNavigate = null
+//     const PREVIOUS_LOCATION = ""
+//     const store = null
+//     const login = new Login({
+//       document,
+//       localStorage: window.localStorage,
+//       onNavigate,
+//       PREVIOUS_LOCATION,
+//       store,
+//     });
+
+//     const user = {
+//       type: "Employee",
+//       email: 'a@a',
+//       password: 'failed',
+//       status: "connected"
+//     }
+//     const loginUser = jest.fn(login.login)
+//     const resultNull = loginUser(user)
+//     expect(resultNull).toBe(null)
+//     })
+//   })
+// })

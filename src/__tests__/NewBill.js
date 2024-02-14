@@ -87,45 +87,54 @@ describe("Given I am connected as an employee", () => {
   })
 })
 
-// Still some work to do on this one (console error doesn't work)
-// describe("Given I am connected as an employee", () => {
-//   describe("When I am on NewBill Page", () => {
-//     test("Then I upload a valid file, but there is a problem in the server", async () => {
-//       const html = NewBillUI()
-//       document.body.innerHTML = html
 
-//       const onNavigate = null
+describe("Given I am connected as an employee", () => {
+  describe("When I am on NewBill Page", () => {
+    jest.spyOn(console, 'error');
+    const error = new Error('error')
+    describe("Then I try to upload a valid file with bad data", async () => {
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+      window.localStorage.setItem('user', JSON.stringify({
+        type: 'Employee',
+        email:'a@a',
+      }))
+
+      const html = NewBillUI()
+      document.body.innerHTML = html
+
+      const onNavigate = null
       
-//       const store = {
-//         bills: () => ({
-//           create: jest.fn(),
-//         }),
-//       };  
-//       store.bills().create.mockRejectedValue(new Error('error'));
+      const store = {
+        bills: jest.fn(() => ({
+          create: jest.fn().mockRejectedValue(error),
+        })),
+      };  
 
-//       const e = {
-//         preventDefault: jest.fn(),
-//         target: {
-//           value: 'filePath',
-//         },
-//       };
+      const e = {
+        preventDefault: jest.fn(),
+        target: {
+          value: 'filePath',
+        },
+      };
 
-//       const newBill = new NewBill({
-//         document, onNavigate, store, localStorage: window.localStorage
-//       })
+      const newBill = new NewBill({
+        document, onNavigate, store, localStorage: window.localStorage
+      })
 
-//       const file = new File(['test file content'], 'test.png', {type: 'image/png',})
-//       fireEvent.change(screen.getByTestId('file'), {target: {files: [file],},})
+      const file = new File(['test file content'], 'test.png', {type: 'image/png',})
+      fireEvent.change(screen.getByTestId('file'), {target: {files: [file],},})
       
-//       const consoleErrorSpy = jest.spyOn(console, 'error');
-//       const handleChangeFile = jest.fn(newBill.handleChangeFile)
-//       await handleChangeFile(e)
+      const handleChangeFile = jest.fn(newBill.handleChangeFile)
+      await handleChangeFile(e)
 
-//       expect(store.bills().create).toHaveBeenCalled()
-//       // return expect(consoleErrorSpy).toHaveBeenCalledWith(new Error('error'))
-//     })
-//   })
-// })
+      expect(handleChangeFile).toHaveBeenCalled()
+      expect(store.bills).toHaveBeenCalled()
+    })
+    test("And it catch an error", async () => {        
+      expect(console.error).toHaveBeenCalledWith(error);
+  });
+  })
+})
 
 
 describe("Given I am connected as an employee", () => {
@@ -144,19 +153,17 @@ describe("Given I am connected as an employee", () => {
         document.body.innerHTML = ROUTES({ pathname })
       }
 
-      const mockUpdateBill = jest.fn()
       const newBill = new NewBill({
         document, onNavigate, store, localStorage: window.localStorage
       })
-      newBill.updateBill = mockUpdateBill
+      newBill.updateBill = jest.fn()
       
       const handleSubmit = jest.fn(newBill.handleSubmit) 
       const form = screen.getByTestId('form-new-bill')
       form.addEventListener('submit', handleSubmit)
       await fireEvent.submit(form)
       
-
-      expect(mockUpdateBill).toHaveBeenCalled()
+      expect(newBill.updateBill).toHaveBeenCalled()
       const buttonNewtBill = screen.getByTestId('btn-new-bill')
       expect(buttonNewtBill.textContent).toBe('Nouvelle note de frais')
     })
@@ -243,15 +250,14 @@ describe("Given I am connected as an employee", () => {
 // Still some work to do on this one (console error doesn't work)
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
-    describe("When I try to update my bill", () => {
-      test("But it catch an error", async () => {
-        jest.spyOn(console, 'error');
+    jest.spyOn(console, 'error');
+    const error = new Error('error')
+    test("Then I failed to update my bill", async () => {
         const html = NewBillUI()
         document.body.innerHTML = html
-        
         const store = {
           bills: jest.fn(() => ({
-            update: jest.fn().mockRejectedValue(new Error('error message')),
+            update: jest.fn().mockRejectedValue(error),
           })),
         }; 
             
@@ -263,8 +269,9 @@ describe("Given I am connected as an employee", () => {
 
         await newBill.updateBill(bill)
         expect(onNavigate).not.toHaveBeenCalled()
-        // expect(console.error).toHaveBeenCalledWith(new Error('error message'));
       });
+      test("And it catch an error", async () => {        
+        expect(console.error).toHaveBeenCalledWith(error);
     });
   });
 });

@@ -66,7 +66,7 @@ export default class Login {
         email: user.email,
         password: user.password,
       })).then(({jwt}) => {
-        localStorage.setItem('jwt', jwt)
+        window.localStorage.setItem('jwt', jwt)
       })
     } else {
       return null

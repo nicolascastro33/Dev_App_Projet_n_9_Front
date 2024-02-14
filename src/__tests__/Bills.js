@@ -153,6 +153,7 @@ describe("Given I am connected as an employee", () => {
       })
       const handleClickNewBill = jest.fn(bill.handleClickNewBill)
       const buttonNewBill = screen.getByTestId('btn-new-bill')
+      expect(buttonNewBill).toBeTruthy()
       buttonNewBill.addEventListener('click', handleClickNewBill)
       fireEvent.click(buttonNewBill)
       expect(handleClickNewBill).toHaveBeenCalled()
@@ -195,6 +196,7 @@ describe("Given I am connected as an employee", () => {
 
       const handleClickIconEye = jest.fn(bill.handleClickIconEye)
       const eye = screen.getByTestId('icon-eye')
+      expect(eye).toBeTruthy()
       eye.addEventListener('click', handleClickIconEye)
       userEvent.click(eye)
 
