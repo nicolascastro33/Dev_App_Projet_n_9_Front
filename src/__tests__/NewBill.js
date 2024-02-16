@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, screen } from "@testing-library/dom"
+import { fireEvent, screen, waitFor } from "@testing-library/dom"
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
 import mockStore from "../__mocks__/store"
@@ -247,7 +247,6 @@ describe("Given I am connected as an employee", () => {
 })
 
 
-// Still some work to do on this one (console error doesn't work)
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
     jest.spyOn(console, 'error');
@@ -275,3 +274,4 @@ describe("Given I am connected as an employee", () => {
     });
   });
 });
+
