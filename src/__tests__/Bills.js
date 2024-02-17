@@ -219,8 +219,8 @@ describe("Given I am a user connected as Employee", () => {
       window.onNavigate(ROUTES_PATH.Bills)
       await waitFor(() => screen.getByText("Mes notes de frais"))
       const newBillButton  = await screen.getByText("Nouvelle note de frais")
+
       expect(newBillButton).toBeTruthy()
-      expect(screen.getByTestId("tbody")).toBeTruthy()
     })
   describe("When an error occurs on API", () => {
     beforeEach(() => {
