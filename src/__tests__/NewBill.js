@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { fireEvent, screen, waitFor } from "@testing-library/dom"
+import { fireEvent, screen } from "@testing-library/dom"
 import NewBillUI from "../views/NewBillUI.js"
 import NewBill from "../containers/NewBill.js"
 import mockStore from "../__mocks__/store"
@@ -136,83 +136,118 @@ describe("Given I am connected as an employee", () => {
   })
 })
 
-
+// test d'intégration Post
 describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill Page", () => {
-    test("Then I pressing the button submit ", async () => {
-      Object.defineProperty(window, 'localStorage', { value: localStorageMock })
-      window.localStorage.setItem('user', JSON.stringify({
-        type: 'Employee',
-        email:'a@a',
-      }))
+  describe("When I am on NewBill Page and I submit the form with valid data", () => {
+    test("But there is fetch error and it fails with a 404 error", async () => {
+      const errorConsole = jest.spyOn(console, "error");
 
-      const html = NewBillUI()
-      document.body.innerHTML = html
-      
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
+      document.body.innerHTML = NewBillUI()
+
       const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname })
-      }
+        document.body.innerHTML = ROUTES({ pathname });
+      };
 
-      const newBill = new NewBill({
-        document, onNavigate, store, localStorage: window.localStorage
-      })
-      newBill.updateBill = jest.fn()
-      
-      const handleSubmit = jest.fn(newBill.handleSubmit) 
-      const form = screen.getByTestId('form-new-bill')
-      form.addEventListener('submit', handleSubmit)
-      await fireEvent.submit(form)
-      
-      expect(newBill.updateBill).toHaveBeenCalled()
-      const buttonNewtBill = screen.getByTestId('btn-new-bill')
-      expect(buttonNewtBill.textContent).toBe('Nouvelle note de frais')
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() => Promise.resolve({})),
+        update: jest.fn(() => Promise.reject(new Error("404"))),
+      };
+
+      const newBill = new NewBill({ document, onNavigate, store: store, localStorage: window.localStorage });
+
+      const form = screen.getByTestId("form-new-bill");
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener("submit", handleSubmit);
+
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(errorConsole).toBeCalledWith(new Error("404"));
+    })
+    test("But there is fetch error and it fails with a 500 error", async () => {
+      const errorConsole = jest.spyOn(console, "error");
+
+      Object.defineProperty(window, "localStorage", { value: localStorageMock });
+      window.localStorage.setItem("user", JSON.stringify({ type: "Employee" }));
+      document.body.innerHTML = NewBillUI()
+
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+
+      const store = {
+        bills: jest.fn(() => newBill.store),
+        create: jest.fn(() => Promise.resolve({})),
+        update: jest.fn(() => Promise.reject(new Error("500"))),
+      };
+
+      const newBill = new NewBill({ document, onNavigate, store: store, localStorage: window.localStorage });
+
+      const form = screen.getByTestId("form-new-bill");
+      const handleSubmit = jest.fn((e) => newBill.handleSubmit(e));
+      form.addEventListener("submit", handleSubmit);
+
+      fireEvent.submit(form);
+      await new Promise(process.nextTick);
+      expect(errorConsole).toBeCalledWith(new Error("500"));
     })
   })
 })
 
+
+
 describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill Page", () => {
-    test("Then I submit the form with valid data", async () => {
+  describe("When I am on NewBill Page and I submit the form with valid data", () => {
+    const storeBillsUpdate = jest.spyOn(store.bills(), 'update');
+    test("Then it should post the new data and I should go to the page bill", async () => {
+      const billConsole = jest.spyOn(console, 'log');
       Object.defineProperty(window, 'localStorage', { value: localStorageMock })
       await window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee',
         email:'a@a',
       }))
 
-      const billConsole = jest.spyOn(console, 'log');
-      const html = NewBillUI()
-      document.body.innerHTML = html
+      document.body.innerHTML = NewBillUI()
+      expect(screen.getByText("Envoyer une note de frais")).toBeTruthy()
 
-      fireEvent.change(screen.getByTestId('expense-type'),{ target: {value: "Transports"}})
-      fireEvent.change(screen.getByTestId('expense-name'),{ target: {value: "Bernard"}})
-      fireEvent.change(screen.getByTestId('amount'),{ target: {value: 5}})
-      fireEvent.change(screen.getByTestId('datepicker'),{ target: {value: "2024-12-12"}})
-      fireEvent.change(screen.getByTestId('vat'),{ target: {value: 20}})
-      fireEvent.change(screen.getByTestId('pct'),{ target: {value: 20}})
-      fireEvent.change(screen.getByTestId('commentary'),{ target: {value: "No comments"}})
-     
-      const onNavigate = (pathname) => {
-        document.body.innerHTML = ROUTES({ pathname })
+      const onNavigate = (pathname, data) => {
+        document.body.innerHTML = ROUTES({ pathname, data })
       }
 
       const newBill = new NewBill({
         document, onNavigate, store, localStorage: window.localStorage
       })
 
+      fireEvent.change(screen.getByTestId('expense-type'),{ target: {value: "Transports"}})
+      fireEvent.change(screen.getByTestId('expense-name'),{ target: {value: "Bernard-TEST"}})
+      fireEvent.change(screen.getByTestId('amount'),{ target: {value: 5}})
+      fireEvent.change(screen.getByTestId('datepicker'),{ target: {value: "2024-12-12"}})
+      fireEvent.change(screen.getByTestId('vat'),{ target: {value: 20}})
+      fireEvent.change(screen.getByTestId('pct'),{ target: {value: 20}})
+      fireEvent.change(screen.getByTestId('commentary'),{ target: {value: "No comments"}})
+     
+      newBill.fileName = "test.png"
+      newBill.fileUrl = 'http://localhost/img/test.png'
+
       const handleSubmit = jest.fn(newBill.handleSubmit) 
       const form = screen.getByTestId('form-new-bill')
       form.addEventListener('submit', handleSubmit)
       await fireEvent.submit(form)
 
-      expect(billConsole).toHaveBeenCalledWith({"amount": 5, "commentary": "No comments", "date": "2024-12-12", "email": "a@a", "fileName": null, "fileUrl": null, "name": "Bernard", "pct": 20, "status": "pending", "type": "Transports", "vat": "20"})
+      expect(billConsole).toHaveBeenCalledWith({"amount": 5, "commentary": "No comments", "date": "2024-12-12", "email": "a@a", "fileName": "test.png", "fileUrl": "http://localhost/img/test.png", "name": "Bernard-TEST", "pct": 20, "status": "pending", "type": "Transports", "vat": "20"})
+      expect(storeBillsUpdate).toHaveBeenCalled()
+      const buttonNewtBill = screen.getByTestId('btn-new-bill')
+      expect(buttonNewtBill.textContent).toBe('Nouvelle note de frais')
     })
   })
 })
 
-
-describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill Page", () => {
-    test("Then I update my bill", async () => {
+//Tests de la fonction updateBill
+describe("Test of the function updateBill", () => {
+  describe("When there is no error and the data are valid", () => {
+    test("Then it update the bill", async () => {
       const storeBillsUpdate = jest.spyOn(store.bills(), 'update');
 
       const html = NewBillUI()
@@ -244,14 +279,10 @@ describe("Given I am connected as an employee", () => {
       expect(buttonNewBill.textContent).toBe('Nouvelle note de frais')
     })
   })
-})
-
-
-describe("Given I am connected as an employee", () => {
-  describe("When I am on NewBill Page", () => {
+  describe("When there is an error", () => {
     jest.spyOn(console, 'error');
     const error = new Error('error')
-    test("Then I failed to update my bill", async () => {
+    test("Then it fails to update", async () => {
         const html = NewBillUI()
         document.body.innerHTML = html
         const store = {
@@ -265,7 +296,6 @@ describe("Given I am connected as an employee", () => {
         const newBill = new NewBill({
           document, onNavigate, store, localStorage: window.localStorage
         })
-
         await newBill.updateBill(bill)
         expect(onNavigate).not.toHaveBeenCalled()
       });
@@ -273,5 +303,4 @@ describe("Given I am connected as an employee", () => {
         expect(console.error).toHaveBeenCalledWith(error);
     });
   });
-});
-
+})

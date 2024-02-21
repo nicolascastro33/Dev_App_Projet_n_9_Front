@@ -20,12 +20,14 @@ export default class NewBill {
     const file = this.document.querySelector(`input[data-testid="file"]`).files[0]
     const errorMessage = this.document.querySelector(`span[data-testid="errorFormatMessage"]`)
     const type = file.type
+    // Billed bugs: [Bug Hunt] - Bills
     if (!['image/jpeg', 'image/jpg', 'image/png'].includes(type)) {
       this.document.querySelector(`input[data-testid="file"]`).value = ''
       errorMessage.textContent = 'Format invalide, veuillez uploader une image en format jpeg, jpg ou png'
       return
     }
     errorMessage.textContent = ''
+    // 
     const filePath = e.target.value.split(/\\/g)
     const fileName = filePath[filePath.length-1]
     const formData = new FormData()

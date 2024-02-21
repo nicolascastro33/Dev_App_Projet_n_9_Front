@@ -36,7 +36,7 @@ export default class Login {
       })
 
   }
-
+  // Billed bugs: [Bug report] - Login
   handleSubmitAdmin = e => {
     e.preventDefault()
     const user = {

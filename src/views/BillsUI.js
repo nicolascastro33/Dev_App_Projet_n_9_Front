@@ -48,7 +48,6 @@ export default ({ data: bills, loading, error }) => {
     return ErrorPage(error)
   }
 
-  const filteredBills = bills?.sort((a, b) => new Date(b.date) - new Date(a.date))
   return (`
     <div class='layout'>
       ${VerticalLayout(120)}
@@ -71,7 +70,7 @@ export default ({ data: bills, loading, error }) => {
           </thead>
           <tbody data-testid="tbody">
           
-            ${rows(filteredBills)}
+            ${rows(bills)}
           </tbody>
           </table>
         </div>

@@ -160,18 +160,6 @@ describe("Given I am connected as an employee", () => {
 
       const formNewBill = screen.queryByTestId('form-new-bill')
       expect(formNewBill).toBeTruthy()
-
-      // Possibilité en externalisant le détail de l'implémentation des tests dans une fixture
-      
-      // givenIAmConnectedAs({
-      //   type: 'Employee'
-      // });
-
-      // givenIAmOnBillsPage(bills);
-
-      // whenIClickOnNewBillButton();
-
-      // thenIShouldSee('form-new-bill');
     })
   })
 })

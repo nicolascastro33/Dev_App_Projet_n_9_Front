@@ -147,11 +147,13 @@ export default class {
     }
 
     bills.forEach(bill => {
+      // Billed bugs: [Bug Hunt] - Dashboard
       const openBill = document.body.querySelector(`#open-bill${bill.id}`)
       if(openBill && !openBill?.classList.value.includes('open')){
         openBill.classList.add('open')
         $(`#open-bill${bill.id}`).click((e) => this.handleEditTicket(e, bill, bills))
       }
+      // 
     })
     return bills
 
