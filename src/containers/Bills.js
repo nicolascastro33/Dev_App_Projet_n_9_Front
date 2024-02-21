@@ -34,8 +34,8 @@ export default class {
       .list()
       .then(snapshot => {
       // Billed bugs: [Bug Hunt] - Bills
-        const filteredBills = snapshot?.sort((a, b) => new Date(b.date) - new Date(a.date))
-        const bills = filteredBills
+        const datesSorted = snapshot?.sort((a, b) => new Date(b.date) - new Date(a.date))
+        const bills = datesSorted
           .map(doc => {
             try {
               if(!doc.email){
